@@ -83,7 +83,6 @@ function routes(req, res) {
 					});
 				}
 			], function(err, resp) {
-				console.log(resp);
 				if(resp && resp[0]) {
 					if(resp[1] && Number(resp[0]['content-length']) === resp[1].size) {
 						//deliver remote file local copy
