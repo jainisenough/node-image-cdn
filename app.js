@@ -119,8 +119,9 @@ function routes(req, res) {
 		}
 
 		//log hook
-		res.once('finish', () => {
-			log.insertOne({
+		if(process.env.NODE_ENV === 'local') {
+			res.once('finish', () => {
+				log.insertOne({
 					url: `${req.headers.host}${req.url}`,
 					ip: req.connection.remoteAddress || req.socket.remoteAddress
 					|| (req.connection.socket && req.connection.socket.remoteAddress),
@@ -128,7 +129,8 @@ function routes(req, res) {
 					agent: req.headers['user-agent'],
 					created: new Date()
 				}, {w: config.db.writeConcern}, () => {});
-		});
+			});
+		}
 	} else {
 		sendResponse(res, 'What you are looking for?', 'text/plain');
 	}
