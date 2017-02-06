@@ -6,7 +6,7 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 const config = require('./config');
-const Image = require('./class/image');
+//const Image = require('./class/image');
 const server = require((typeof process.env.HTTP === 'undefined' || process.env.HTTP === 'true') ?
 	'http' : 'spdy');
 
@@ -77,9 +77,13 @@ function routes(req, res) {
 					}).end();
 				},
 				function(cbk) {
-					fs.stat(fPath, cbk);
+					fs.stat(fPath, (err, resp) => {
+						if(err) cbk(null, null);
+						else cbk(null, resp);
+					});
 				}
 			], function(err, resp) {
+				console.log(resp);
 				if(resp && resp[0]) {
 					if(resp[1] && Number(resp[0]['content-length']) === resp[1].size) {
 						//deliver remote file local copy
