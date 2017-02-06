@@ -1,0 +1,17 @@
+{
+  "name": "image-cdn",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "main": "app.js",
+  "dependencies": {
+    "async": "^2.1.4",
+    "mime": "^1.3.4",
+    "mongodb": "^2.2.22"
+  },
+  "description": "Image cdn server",
+  "author": "Akhilesh Jain",
+  "license": "ISC"
+}
