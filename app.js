@@ -66,6 +66,7 @@ function routes(req, res) {
 		let fPath = `${config.base}${parseUrl[2]}/${fName}`;
 
 		//download image
+		console.log(link);
 		if(link.hostname) {
 			async.parallel([
 				function(cbk) {
