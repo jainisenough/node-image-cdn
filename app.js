@@ -46,6 +46,7 @@ function sendResponse(res, buffer, contentType, crop) {
 
 //routing method
 function routes(req, res) {
+	console.log('Akhileshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh');
 	if (req.method === 'GET') {
 		let requestUrl = url.parse(req.url);
 		let parseUrl = requestUrl.pathname.replace(/^\/|\/$/g, '');
@@ -66,7 +67,6 @@ function routes(req, res) {
 		let fPath = `${config.base}${parseUrl[2]}/${fName}`;
 
 		//download image
-		console.log(link);
 		if(link.hostname) {
 			async.parallel([
 				function(cbk) {
