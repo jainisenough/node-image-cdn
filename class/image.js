@@ -49,6 +49,7 @@ module.exports = class ImageManipulation {
 			quality: configuration.image.quality.default
 		});
 		return sharp(buffer)[this.ext](this.imageOption)
+			.resize(this.option.w, this.option.h)
 			//.toFormat(sharp.format.webp)
 			.toBuffer();
 	}
