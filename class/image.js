@@ -1,5 +1,6 @@
 'use strict';
 const sharp = require('sharp');
+const fileType = require('file-type');
 const _ = require('lodash');
 const configuration = {
 	image: {
@@ -21,7 +22,7 @@ module.exports = class ImageManipulation {
 		this.imageOption = {
 			progressive: true
 		};
-		this.ext = crop.ext || 'jpeg';
+		this.ext = 'jpeg';
 		this.option = {};
 		this.webp = crop.webp || true;
 
@@ -38,7 +39,11 @@ module.exports = class ImageManipulation {
 	}
 
 	manipulateImage(buffer) {
+		let fType = fileType(buffer);
 		let img = sharp(buffer);
+		if(fType)
+			this.ext = fType.ext;
+
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
 			compressionLevel: configuration.image.compression.default
 		}:{
@@ -49,4 +54,3 @@ module.exports = class ImageManipulation {
 			.toBuffer();
 	}
 };
-

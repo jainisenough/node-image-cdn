@@ -1,7 +1,7 @@
 'use strict';
 const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
-const mime = require('mime');
+const fileType = require('file-type');
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
@@ -28,19 +28,20 @@ if(process.env.NODE_ENV === 'local') {
  */
 
 //send response
-function sendResponse(res, buffer, contentType, crop) {
+function sendResponse(res, buffer, crop) {
 	crop = crop || false;
 
 	//create image manipulation object
 	if(crop) {
-		crop.ext = mime.extension(contentType);
 		let obj = new Image(crop);
 		obj.manipulateImage(buffer).then((resp) => {
+			let fType = fileType(resp);
+			let contentType = fType ? fType.mime : 'text/plain';
 			res.writeHead(200, {'Content-Type': contentType});
 			res.end(resp, 'binary');
 		}).catch((err) => console.log(err));
 	} else {
-		res.writeHead(200, {'Content-Type': contentType});
+		res.writeHead(200, {'Content-Type': 'text/plain'});
 		res.end(buffer, 'binary');
 	}
 }
@@ -88,7 +89,7 @@ function routes(req, res) {
 					if(resp[1] && Number(resp[0]['content-length']) === resp[1].size) {
 						//deliver remote file local copy
 						fs.readFile(fPath, (err, data) => {
-							sendResponse(res, data, mime.lookup(fName), parseUrl.length > 4 ? {
+							sendResponse(res, data, parseUrl.length > 4 ? {
 								option: parseUrl[parseUrl.length - 2]
 							} : false);
 						});
@@ -104,19 +105,19 @@ function routes(req, res) {
 
 								file.on('error', (e) => {
 									fs.unlink(fPath);
-									sendResponse(res, `Got error: ${e.message}`, 'text/plain');
+									sendResponse(res, `Got error: ${e.message}`);
 								}).on('finish', () => {
 									file.close();
-									sendResponse(res, Buffer.concat(data), mime.lookup(fName), parseUrl.length > 4 ? {
+									sendResponse(res, Buffer.concat(data), parseUrl.length > 4 ? {
 										option: parseUrl[parseUrl.length - 2]
 									} : false);
 								});
-							}
+							} else
+								sendResponse(res, 'Remote file missing.');
 						});
 					}
-				} else {
-					sendResponse(res, 'Remote file missing.', 'text/plain');
-				}
+				} else
+					sendResponse(res, 'Remote file missing.');
 			});
 		} else {
 			//deliver local file
@@ -136,7 +137,7 @@ function routes(req, res) {
 			});
 		}
 	} else {
-		sendResponse(res, 'What you are looking for?', 'text/plain');
+		sendResponse(res, 'What you are looking for?');
 	}
 }
 
