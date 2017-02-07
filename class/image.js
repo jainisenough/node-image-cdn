@@ -40,7 +40,6 @@ module.exports = class ImageManipulation {
 
 	manipulateImage(buffer) {
 		let fType = fileType(buffer);
-		let img = sharp(buffer);
 		if(fType)
 			this.ext = fType.ext;
 
@@ -49,9 +48,9 @@ module.exports = class ImageManipulation {
 		}:{
 			quality: configuration.image.quality.default
 		});
-		return img;
-		/*return img[this.ext](this.imageOption)
+		console.log(typeof sharp(buffer)[this.ext]);
+		return sharp(buffer)[this.ext](this.imageOption)
 			.toFormat(sharp.format.webp)
-			.toBuffer();*/
+			.toBuffer();
 	}
 };
