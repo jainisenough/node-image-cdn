@@ -6,7 +6,7 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 const config = require('./config');
-//const Image = require('./class/image');
+const Image = require('./class/image');
 const server = require((typeof process.env.HTTP === 'undefined' || process.env.HTTP === 'true') ?
 	'http' : 'spdy');
 
@@ -48,7 +48,6 @@ function sendResponse(res, buffer, contentType, crop) {
 
 //routing method
 function routes(req, res) {
-	res.end('Akhilesh Jain');
 	if (req.method === 'GET') {
 		let requestUrl = url.parse(req.url);
 		let parseUrl = requestUrl.pathname.replace(/^\/|\/$/g, '');
@@ -155,7 +154,7 @@ if (typeof process.env.HTTP === 'undefined' || process.env.HTTP) {
 }
 
 serv.timeout = config.server.timeout;
-serv.listen(process.env.PORT || config.port || 3000, config.host, () => {
+serv.listen(process.env.PORT || config.port, config.host, () => {
 	console.log(`Server initialize http${(process.env.HTTP === 'false' ? 's' : '')}://${config.host}:\
-${config.port}`);
+${process.env.PORT || config.port}`);
 });
