@@ -6,7 +6,7 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 const config = require('./config');
-const Image = require('./class/image');
+//const Image = require('./class/image');
 const server = require((typeof process.env.HTTP === 'undefined' || process.env.HTTP === 'true') ?
 	'http' : 'spdy');
 
@@ -46,7 +46,7 @@ function sendResponse(res, buffer, contentType, crop) {
 
 //routing method
 function routes(req, res) {
-	console.log('Akhileshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh');
+	res.end('Akhilesh Jain');
 	if (req.method === 'GET') {
 		let requestUrl = url.parse(req.url);
 		let parseUrl = requestUrl.pathname.replace(/^\/|\/$/g, '');
