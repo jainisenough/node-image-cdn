@@ -155,7 +155,7 @@ if (typeof process.env.HTTP === 'undefined' || process.env.HTTP) {
 }
 
 serv.timeout = config.server.timeout;
-serv.listen(config.port, config.host, () => {
+serv.listen(process.env.PORT || config.port || 3000, config.host, () => {
 	console.log(`Server initialize http${(process.env.HTTP === 'false' ? 's' : '')}://${config.host}:\
 ${config.port}`);
 });
