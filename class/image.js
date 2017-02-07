@@ -35,6 +35,7 @@ module.exports = class ImageManipulation {
 				let temp = v.split('_');
 				this.option[temp[0]] = temp[1];
 			});
+			console.log(this.option);
 		}
 	}
 
@@ -48,6 +49,7 @@ module.exports = class ImageManipulation {
 		}:{
 			quality: configuration.image.quality.default
 		});
+
 		return sharp(buffer)[this.ext](this.imageOption)
 			.resize(this.option.w, this.option.h)
 			//.toFormat(sharp.format.webp)
