@@ -1,11 +1,14 @@
 {
-  "name": "image-cdn",
+  "name": "sharp-image",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node app"
+    "start": "node --use_strict --harmony ."
   },
   "main": "app.js",
+  "env": {
+    "NODE_ENV": "development"
+  },
   "dependencies": {
     "async": "^2.1.4",
     "mime": "^1.3.4",

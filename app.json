@@ -1,7 +1,8 @@
 {
   "name": "sharp-image",
-  "description": "Image cropping & manipulation app",
+  "description": "Image cdn server",
   "scripts": {
+    "start": "node --use_strict --harmony ."
   },
   "env": {
     "NODE_ENV": "development"
