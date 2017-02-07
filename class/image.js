@@ -49,7 +49,7 @@ module.exports = class ImageManipulation {
 			quality: configuration.image.quality.default
 		});
 		return sharp(buffer)[this.ext](this.imageOption)
-			.toFormat(sharp.format.webp)
+			//.toFormat(sharp.format.webp)
 			.toBuffer();
 	}
 };
