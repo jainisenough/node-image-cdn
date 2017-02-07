@@ -44,7 +44,9 @@ module.exports = class ImageManipulation {
 		}:{
 			quality: configuration.image.quality.default
 		});
-		return img[this.ext](this.imageOption).toBuffer();
+		return img[this.ext](this.imageOption)
+			.toFormat(sharp.format.webp)
+			.toBuffer();
 	}
 };
 
