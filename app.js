@@ -35,7 +35,7 @@ function sendResponse(res, buffer, contentType, crop) {
 	if(crop) {
 		let obj = new Image(crop);
 		obj.manipulateImage(buffer).then((err, resp) => {
-			console.log('Testinggggggggggggggggggggggg');
+			console.log(err);
 			res.writeHead(200, {'Content-Type': contentType});
 			res.end(resp, 'binary');
 		});
