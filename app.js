@@ -13,11 +13,13 @@ const server = require((typeof process.env.HTTP === 'undefined' || process.env.H
 /************Configuration******************/
 // mongo connection
 let log;
-mongoClient.connect(`${config.db.type}db://${config.db.server}:${config.db.port}/${config.db.name}`,
-	(err, db) => {
-	if(err) throw err;
-	log = db.collection('log');
-});
+if(process.env.NODE_ENV === 'local') {
+	mongoClient.connect(`${config.db.type}db://${config.db.server}:${config.db.port}/${config.db.name}`,
+		(err, db) => {
+			if (err) throw err;
+			log = db.collection('log');
+		});
+}
 
 /************Private function******************/
 /*
