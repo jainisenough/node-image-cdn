@@ -48,7 +48,7 @@ module.exports = class ImageManipulation {
 		}:{
 			quality: configuration.image.quality.default
 		});
-		console.log(typeof sharp(buffer)[this.ext]);
+		console.log(this.ext);
 		return sharp(buffer)[this.ext](this.imageOption)
 			.toFormat(sharp.format.webp)
 			.toBuffer();
