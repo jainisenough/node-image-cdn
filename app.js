@@ -6,7 +6,7 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 const config = require('./config');
-const Image = require('./class/image');
+//const Image = require('./class/image');
 const server = require((typeof process.env.HTTP === 'undefined' || process.env.HTTP === 'true') ?
 	'http' : 'spdy');
 
@@ -35,10 +35,9 @@ function sendResponse(res, buffer, contentType, crop) {
 	if(crop) {
 		let obj = new Image(crop);
 		obj.manipulateImage(buffer).then((err, resp) => {
-			console.log(err);
-			console.log(resp);
+			console.log('Testinggggggggggggggggggggggg');
 			res.writeHead(200, {'Content-Type': contentType});
-			res.end(buffer, 'binary');
+			res.end(resp, 'binary');
 		});
 	} else {
 		res.writeHead(200, {'Content-Type': contentType});
