@@ -33,12 +33,12 @@ function sendResponse(res, buffer, contentType, crop) {
 
 	//create image manipulation object
 	if(crop) {
+		crop.ext = mime.extension(contentType);
 		let obj = new Image(crop);
-		obj.manipulateImage(buffer).then((err, resp) => {
-			console.log(err);
+		/*obj.manipulateImage(buffer).then((resp) => {
 			res.writeHead(200, {'Content-Type': contentType});
 			res.end(resp, 'binary');
-		});
+		}).catch((err) => console.log(err));*/
 	} else {
 		res.writeHead(200, {'Content-Type': contentType});
 		res.end(buffer, 'binary');

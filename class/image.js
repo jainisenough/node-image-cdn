@@ -1,5 +1,6 @@
 'use strict';
 const sharp = require('sharp');
+const _ = require('lodash');
 const configuration = {
 	image: {
 		quality: {
@@ -17,25 +18,33 @@ const configuration = {
 
 module.exports = class ImageManipulation {
 	constructor(crop) {
+		this.imageOption = {
+			progressive: true
+		};
+		this.ext = crop.ext || 'jpeg';
 		this.option = {};
-		if(crop && crop.option) {
-			let option = {};
-			crop.option.split(',').forEach((k, v) => {
-				this.option[k] = v;
+		this.webp = crop.webp || true;
+
+		//merge image options
+		_.assignIn(this.imageOption, crop.imageOption);
+
+		//merge option
+		if(crop.option) {
+			crop.option.split(',').forEach(v => {
+				let temp = v.split('_');
+				this.option[temp[0]] = temp[1];
 			});
 		}
 	}
 
 	manipulateImage(buffer) {
-		let img = sharp(buffer)
-			.progressive()
-			.quality(configuration.image.quality.default)
-			.compressionLevel(configuration.image.compression.default);
-
-		return Promise.all([
-			img,
-			img.toFormat(sharp.format.webp)
-		]);
+		let img = sharp(buffer);
+		_.assignIn(this.imageOption, this.ext === 'png' ? {
+			compressionLevel: configuration.image.compression.default
+		}:{
+			quality: configuration.image.quality.default
+		});
+		return img[this.ext](this.imageOption).toBuffer();
 	}
 };
 
