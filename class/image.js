@@ -41,14 +41,13 @@ module.exports = class ImageManipulation {
 	manipulateImage(buffer) {
 		let fType = fileType(buffer);
 		if(fType)
-			this.ext = fType.ext;
+			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
 
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
 			compressionLevel: configuration.image.compression.default
 		}:{
 			quality: configuration.image.quality.default
 		});
-		console.log(this.ext);
 		return sharp(buffer)[this.ext](this.imageOption)
 			.toFormat(sharp.format.webp)
 			.toBuffer();
