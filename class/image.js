@@ -33,7 +33,7 @@ module.exports = class ImageManipulation {
 		if(crop.option) {
 			crop.option.split(',').forEach(v => {
 				let temp = v.split('_');
-				this.option[temp[0]] = temp[1];
+				this.option[temp[0]] = isNaN(temp[1]) ? temp[1] : Number(temp[1]);
 			});
 			console.log(this.option);
 		}
