@@ -34,7 +34,7 @@ module.exports = class ImageManipulation {
 	}
 
 	manipulateImage(buffer) {
-		let agent = useragent.is(req.headers['user-agent']);
+		//let agent = useragent.is(req.headers['user-agent']);
 		let fType = fileType(buffer);
 		if(fType)
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
@@ -49,8 +49,8 @@ module.exports = class ImageManipulation {
 			.blur(this.option.b || configuration.image.blur);
 		if(this.option.w || this.option.h)
 			img = img.resize(this.option.w, this.option.h);
-		if(agent.chrome || agent.opera || agent.android)
-			img = img.toFormat(sharp.format.webp);
+		//if(agent.chrome || agent.opera || agent.android)
+		//	img = img.toFormat(sharp.format.webp);
 		return img.toBuffer();
 	}
 };
