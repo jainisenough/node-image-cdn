@@ -35,7 +35,6 @@ module.exports = class ImageManipulation {
 				let temp = v.split('_');
 				this.option[temp[0]] = isNaN(temp[1]) ? temp[1] : Number(temp[1]);
 			});
-			console.log(this.option);
 		}
 	}
 
@@ -47,7 +46,7 @@ module.exports = class ImageManipulation {
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
 			compressionLevel: configuration.image.compression.default
 		}:{
-			quality: configuration.image.quality.default
+			quality: this.option.q || configuration.image.quality.default
 		});
 
 		return sharp(buffer)[this.ext](this.imageOption)
