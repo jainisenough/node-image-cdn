@@ -5,7 +5,8 @@ const _ = require('lodash');
 const configuration = {
 	image: {
 		quality: 60,
-		compression: 6
+		compression: 6,
+		blur: 0.5
 	}
 };
 
@@ -42,7 +43,8 @@ module.exports = class ImageManipulation {
 			quality: this.option.q || configuration.image.quality
 		});
 
-		let img = sharp(buffer)[this.ext](this.imageOption);
+		let img = sharp(buffer)[this.ext](this.imageOption)
+			.blur({sigma: this.option.b || configuration.image.blur});
 		if(this.option.w || this.option.h)
 			img = img.resize(this.option.w, this.option.h);
 		//.toFormat(sharp.format.webp)
