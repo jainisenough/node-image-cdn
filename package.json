@@ -14,7 +14,8 @@
     "file-type": "^4.1.0",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.22",
-    "sharp": "^0.17.1"
+    "sharp": "^0.17.1",
+    "useragent": "^2.1.12"
   },
   "description": "Image cdn server",
   "author": "Akhilesh Jain",
