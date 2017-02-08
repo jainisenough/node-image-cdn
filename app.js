@@ -28,6 +28,8 @@ if(process.env.NODE_ENV === 'local') {
  @format http://192.168.1.105:3015/<app-name>/<file-type>/<directory-path>/<options>/<file-name>
  @example http://192.168.1.105:3015/demo/image/upload/Desert.jpg
  */
+/*if(agent.chrome || agent.opera || agent.android)
+ buf = sharp(buf).toFormat(sharp.format.webp).toBuffer();*/
 
 //send response
 function sendResponse(req, res, next, buffer, crop) {
@@ -41,8 +43,6 @@ function sendResponse(req, res, next, buffer, crop) {
 		} else resolve(buffer);
 	}).then((buf) => {
 		let agent = useragent.is(req.headers['user-agent']);
-		//if(agent.chrome || agent.opera || agent.android)
-			//buf = sharp(buf).toFormat(sharp.format.webp).toBuffer();
 		let fType = fileType(buf);
 		let contentType = fType ? fType.mime : 'text/plain';
 		res.writeHead(200, {'Content-Type': contentType});
