@@ -45,7 +45,7 @@ module.exports = class ImageManipulation {
 		}:{
 			quality: this.option.q || configuration.image.quality
 		});
-
+		console.log(agent);
 		let img = sharp(buffer)[this.ext](this.imageOption)
 			.blur(this.option.b || configuration.image.blur);
 		if(this.option.w || this.option.h)
