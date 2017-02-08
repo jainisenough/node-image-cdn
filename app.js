@@ -36,17 +36,25 @@ function sendResponse(req, res, next, buffer, crop) {
 	crop = crop || false;
 
 	//create image manipulation object
-	new Promise(function(resolve, reject) {
+	new Promise((resolve, reject) => {
 		if(crop) {
 			let obj = new Image(crop);
 			obj.manipulateImage(buffer).then(resolve).catch(reject);
-		} else resolve(buffer);
+		} else
+				resolve(buffer);
 	}).then((buf) => {
 		let agent = useragent.is(req.headers['user-agent']);
-		let fType = fileType(buf);
-		let contentType = fType ? fType.mime : 'text/plain';
-		res.writeHead(200, {'Content-Type': contentType});
-		res.end(buf, 'binary');
+		new Promise((resolve, reject) => {
+			if(agent.chrome || agent.opera || agent.android)
+				buf = sharp(buf).toFormat(sharp.format.webp).toBuffer().then(resolve).catch(reject);
+			else
+				resolve(buf)
+		}).then((b) => {
+			let fType = fileType(b);
+			let contentType = fType ? fType.mime : 'text/plain';
+			res.writeHead(200, {'Content-Type': contentType});
+			res.end(b, 'binary');
+		}).catch((err) => console.log(err));
 	}).catch((err) => console.log(err));
 }
 
