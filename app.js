@@ -1,7 +1,9 @@
 'use strict';
 const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
+const sharp = require('sharp');
 const fileType = require('file-type');
+const useragent = require('useragent');
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
@@ -32,20 +34,20 @@ function sendResponse(req, res, next, buffer, crop) {
 	crop = crop || false;
 
 	//create image manipulation object
-	if(crop) {
-		let obj = new Image(req, crop);
-		obj.manipulateImage(buffer).then((resp) => {
-			let fType = fileType(resp);
-			let contentType = fType ? fType.mime : 'text/plain';
-			res.writeHead(200, {'Content-Type': contentType});
-			res.end(resp, 'binary');
-		}).catch((err) => console.log(err));
-	} else {
-		let fType = fileType(buffer);
+	new Promise(function(resolve, reject) {
+		if(crop) {
+			let obj = new Image(crop);
+			obj.manipulateImage(buffer).then(resolve).catch(reject);
+		} else resolve(buffer);
+	}).then((buf) => {
+		let agent = useragent.is(req.headers['user-agent']);
+		if(agent.chrome || agent.opera || agent.android)
+			buf = sharp(buf).toFormat(sharp.format.webp).toBuffer();
+		let fType = fileType(buf);
 		let contentType = fType ? fType.mime : 'text/plain';
 		res.writeHead(200, {'Content-Type': contentType});
-		res.end(buffer, 'binary');
-	}
+		res.end(buf, 'binary');
+	}).catch((err) => console.log(err));
 }
 
 //routing method

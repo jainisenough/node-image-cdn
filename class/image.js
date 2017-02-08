@@ -1,7 +1,6 @@
 'use strict';
 const sharp = require('sharp');
 const fileType = require('file-type');
-const useragent = require('useragent');
 const _ = require('lodash');
 const configuration = {
 	image: {
@@ -12,11 +11,10 @@ const configuration = {
 };
 
 module.exports = class ImageManipulation {
-	constructor(req, crop) {
+	constructor(crop) {
 		this.imageOption = {
 			progressive: true
 		};
-		this.req = req;
 		this.ext = 'jpeg';
 		this.option = {};
 		this.webp = crop.webp || true;
@@ -35,7 +33,6 @@ module.exports = class ImageManipulation {
 	}
 
 	manipulateImage(buffer) {
-		let agent = useragent.is(this.req.headers['user-agent']);
 		let fType = fileType(buffer);
 		if(fType)
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
@@ -45,13 +42,11 @@ module.exports = class ImageManipulation {
 		}:{
 			quality: this.option.q || configuration.image.quality
 		});
-		console.log(agent);
+
 		let img = sharp(buffer)[this.ext](this.imageOption)
 			.blur(this.option.b || configuration.image.blur);
 		if(this.option.w || this.option.h)
 			img = img.resize(this.option.w, this.option.h);
-		if(agent.chrome || agent.opera || agent.android)
-			img = img.toFormat(sharp.format.webp);
 		return img.toBuffer();
 	}
 };
