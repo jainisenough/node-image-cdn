@@ -28,12 +28,12 @@ if(process.env.NODE_ENV === 'local') {
  */
 
 //send response
-function sendResponse(res, buffer, crop) {
+function sendResponse(req, res, next, buffer, crop) {
 	crop = crop || false;
 
 	//create image manipulation object
 	if(crop) {
-		let obj = new Image(crop);
+		let obj = new Image(req, crop);
 		obj.manipulateImage(buffer).then((resp) => {
 			let fType = fileType(resp);
 			let contentType = fType ? fType.mime : 'text/plain';
@@ -41,116 +41,120 @@ function sendResponse(res, buffer, crop) {
 			res.end(resp, 'binary');
 		}).catch((err) => console.log(err));
 	} else {
-		res.writeHead(200, {'Content-Type': 'text/plain'});
+		let fType = fileType(buffer);
+		let contentType = fType ? fType.mime : 'text/plain';
+		res.writeHead(200, {'Content-Type': contentType});
 		res.end(buffer, 'binary');
 	}
 }
 
 //routing method
-function routes(req, res) {
-	if (req.method === 'GET') {
-		let requestUrl = url.parse(req.url);
-		let parseUrl = requestUrl.pathname.replace(/^\/|\/$/g, '');
-		parseUrl = parseUrl.split('/');
-		let f = parseUrl[parseUrl.length - 1];
+function routes() {
+	return function (req, res, next) {
+		if (req.method === 'GET') {
+			let requestUrl = url.parse(req.url);
+			let parseUrl = requestUrl.pathname.replace(/^\/|\/$/g, '');
+			parseUrl = parseUrl.split('/');
+			let f = parseUrl[parseUrl.length - 1];
 
-		//add protocol, if not
-		if(f.indexOf('http') === -1)
-			f = 'http%3A' + f;
+			//add protocol, if not
+			if(f.indexOf('http') === -1)
+				f = 'http%3A' + f;
 
-		try {
-			f = decodeURIComponent(f);
-		} catch (e) {}
+			try {
+				f = decodeURIComponent(f);
+			} catch (e) {}
 
-		//validate either link or name
-		let link = url.parse(f);
-		let fName = f.substring(f.lastIndexOf('/'));
-		let fPath = `${config.base}${parseUrl[2]}/${fName}`;
+			//validate either link or name
+			let link = url.parse(f);
+			let fName = f.substring(f.lastIndexOf('/'));
+			let fPath = `${config.base}${parseUrl[2]}/${fName}`;
 
-		//download image
-		if(link.hostname) {
-			async.parallel([
-				function(cbk) {
-					http.request({method: 'HEAD', hostname: link.hostname, port: link.port, path: link.path},
-						(resp) => {
-						cbk(null, resp.headers);
-					}).on('error', (e) => {
-						cbk(e, null);
-					}).end();
-				},
-				function(cbk) {
-					fs.stat(fPath, (err, resp) => {
-						if(err) cbk(null, null);
-						else cbk(null, resp);
-					});
-				}
-			], function(err, resp) {
-				if(resp && resp[0]) {
-					if(resp[1] && Number(resp[0]['content-length']) === resp[1].size) {
-						//deliver remote file local copy
-						fs.readFile(fPath, (err, data) => {
-							sendResponse(res, data, parseUrl.length > 4 ? {
-								option: parseUrl[parseUrl.length - 2]
-							} : false);
-						});
-					} else {
-						let file = fs.createWriteStream(fPath);
-						http.get(f, (response) => {
-							if (response.statusCode === 200) {
-								let data = [];
-								response.pipe(file);
-								response.on('data', (chunk) => {
-									data.push(chunk);
-								});
-
-								file.on('error', (e) => {
-									fs.unlink(fPath);
-									sendResponse(res, `Got error: ${e.message}`);
-								}).on('finish', () => {
-									file.close();
-									sendResponse(res, Buffer.concat(data), parseUrl.length > 4 ? {
-										option: parseUrl[parseUrl.length - 2]
-									} : false);
-								});
-							} else
-								sendResponse(res, 'Remote file missing.');
+			//download image
+			if(link.hostname) {
+				async.parallel([
+					function(cbk) {
+						http.request({method: 'HEAD', hostname: link.hostname, port: link.port, path: link.path},
+							(resp) => {
+								cbk(null, resp.headers);
+							}).on('error', (e) => {
+							cbk(e, null);
+						}).end();
+					},
+					function(cbk) {
+						fs.stat(fPath, (err, resp) => {
+							if(err) cbk(null, null);
+							else cbk(null, resp);
 						});
 					}
-				} else
-					sendResponse(res, 'Remote file missing.');
-			});
-		} else {
-			//deliver local file
-		}
+				], function(err, resp) {
+					if(resp && resp[0]) {
+						if(resp[1] && Number(resp[0]['content-length']) === resp[1].size) {
+							//deliver remote file local copy
+							fs.readFile(fPath, (err, data) => {
+								sendResponse(req, res, next, data, parseUrl.length > 4 ? {
+									option: parseUrl[parseUrl.length - 2]
+								} : false);
+							});
+						} else {
+							let file = fs.createWriteStream(fPath);
+							http.get(f, (response) => {
+								if (response.statusCode === 200) {
+									let data = [];
+									response.pipe(file);
+									response.on('data', (chunk) => {
+										data.push(chunk);
+									});
 
-		//log hook
-		if(process.env.NODE_ENV === 'local') {
-			res.once('finish', () => {
-				log.insertOne({
-					url: `${req.headers.host}${req.url}`,
-					ip: req.connection.remoteAddress || req.socket.remoteAddress
-					|| (req.connection.socket && req.connection.socket.remoteAddress),
-					token: req.headers.token,
-					agent: req.headers['user-agent'],
-					created: new Date()
-				}, {w: config.db.writeConcern}, () => {});
-			});
+									file.on('error', (e) => {
+										fs.unlink(fPath);
+										sendResponse(req, res, next, `Got error: ${e.message}`);
+									}).on('finish', () => {
+										file.close();
+										sendResponse(req, res, next, Buffer.concat(data), parseUrl.length > 4 ? {
+											option: parseUrl[parseUrl.length - 2]
+										} : false);
+									});
+								} else
+									sendResponse(req, res, next, 'Remote file missing.');
+							});
+						}
+					} else
+						sendResponse(req, res, next, 'Remote file missing.');
+				});
+			} else {
+				//deliver local file
+			}
+
+			//log hook
+			if(process.env.NODE_ENV === 'local') {
+				res.once('finish', () => {
+					log.insertOne({
+						url: `${req.headers.host}${req.url}`,
+						ip: req.connection.remoteAddress || req.socket.remoteAddress
+						|| (req.connection.socket && req.connection.socket.remoteAddress),
+						token: req.headers.token,
+						agent: req.headers['user-agent'],
+						created: new Date()
+					}, {w: config.db.writeConcern}, () => {});
+				});
+			}
+		} else {
+			sendResponse(req, res, next, 'What you are looking for?');
 		}
-	} else {
-		sendResponse(res, 'What you are looking for?');
 	}
 }
 
 /*********Initialize Server**********************/
 let serv;
 if (typeof process.env.HTTP === 'undefined' || process.env.HTTP) {
-	serv = server.createServer(routes);
+	serv = server.createServer(routes());
 } else {
 	serv = server.createServer({
 		key: fs.readFileSync(config.server.ssl.key),
 		cert: fs.readFileSync(config.server.ssl.cert),
 		ca: fs.readFileSync(config.server.ssl.ca)
-	}, routes);
+	}, routes());
 }
 
 serv.timeout = config.server.timeout;
