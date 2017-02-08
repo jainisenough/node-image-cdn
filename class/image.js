@@ -44,7 +44,7 @@ module.exports = class ImageManipulation {
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
 
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
-			compressionLevel: configuration.image.compression.default
+			compressionLevel: this.option.q ? parseInt(this.option.q/11.11) : configuration.image.compression.default
 		}:{
 			quality: this.option.q || configuration.image.quality.default
 		});
