@@ -41,7 +41,7 @@ function sendResponse(req, res, next, buffer, crop) {
 		} else resolve(buffer);
 	}).then((buf) => {
 		let agent = useragent.is(req.headers['user-agent']);
-		if(agent.chrome || agent.opera || agent.android)
+		//if(agent.chrome || agent.opera || agent.android)
 			//buf = sharp(buf).toFormat(sharp.format.webp).toBuffer();
 		let fType = fileType(buf);
 		let contentType = fType ? fType.mime : 'text/plain';
