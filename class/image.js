@@ -4,16 +4,8 @@ const fileType = require('file-type');
 const _ = require('lodash');
 const configuration = {
 	image: {
-		quality: {
-			default: 60,
-			low: 30,
-			high: 82
-		},
-		compression: {
-			default: 6,
-			low: 9,
-			high: 3
-		}
+		quality: 60,
+		compression: 6
 	}
 };
 
@@ -33,7 +25,8 @@ module.exports = class ImageManipulation {
 		if(crop.option) {
 			crop.option.split(',').forEach(v => {
 				let temp = v.split('_');
-				this.option[temp[0]] = isNaN(temp[1]) ? temp[1] : Number(temp[1]);
+				if(temp.length === 2)
+					this.option[temp[0]] = isNaN(temp[1]) ? temp[1] : Number(temp[1]);
 			});
 		}
 	}
@@ -44,14 +37,15 @@ module.exports = class ImageManipulation {
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
 
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
-			compressionLevel: this.option.q ? parseInt(this.option.q/11.11) : configuration.image.compression.default
+			compressionLevel: this.option.q ? parseInt(this.option.q/11.11) : configuration.image.compression
 		}:{
-			quality: this.option.q || configuration.image.quality.default
+			quality: this.option.q || configuration.image.quality
 		});
 
-		return sharp(buffer)[this.ext](this.imageOption)
-			.resize(this.option.w, this.option.h)
-			//.toFormat(sharp.format.webp)
-			.toBuffer();
+		let img = sharp(buffer)[this.ext](this.imageOption);
+		if(this.option.w || this.option.h)
+			img = img.resize(this.option.w, this.option.h);
+		//.toFormat(sharp.format.webp)
+		return img.toBuffer();
 	}
 };
