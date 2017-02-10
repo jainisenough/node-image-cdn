@@ -4,9 +4,7 @@ const fileType = require('file-type');
 const _ = require('lodash');
 const configuration = {
 	image: {
-		quality: 60,
-		compression: 6,
-		blur: 0.5
+		quality: 60
 	}
 };
 
@@ -38,13 +36,14 @@ module.exports = class ImageManipulation {
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
 
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
-			compressionLevel: this.option.q ? parseInt(this.option.q/11.11) : configuration.image.compression
+			compressionLevel: Math.round((this.option.q || configuration.image.quality)/11.11)
 		}:{
 			quality: this.option.q || configuration.image.quality
 		});
 
-		let img = sharp(buffer)[this.ext](this.imageOption)
-			.blur(this.option.b || configuration.image.blur);
+		let img = sharp(buffer)[this.ext](this.imageOption);
+		if(this.option.b)
+			img = img.blur(this.option.b || configuration.image.blur);
 		if(this.option.w || this.option.h)
 			img = img.resize(this.option.w, this.option.h);
 		return img.toBuffer();
