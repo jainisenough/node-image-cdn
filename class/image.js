@@ -4,7 +4,11 @@ const fileType = require('file-type');
 const _ = require('lodash');
 const configuration = {
 	image: {
-		quality: 60
+		quality: 60,
+		blur: {
+			min: 0.05,
+			max: 0.5
+		}
 	}
 };
 
@@ -41,9 +45,9 @@ module.exports = class ImageManipulation {
 			quality: this.option.q || configuration.image.quality
 		});
 
-		let img = sharp(buffer)[this.ext](this.imageOption);
-		if(this.option.b)
-			img = img.blur(this.option.b || configuration.image.blur);
+		let img = sharp(buffer)[this.ext](this.imageOption)
+			.blur(this.option.b ||
+			(this.option.w && this.option.w > 500) ? configuration.image.blur.max : configuration.image.blur.min);
 		if(this.option.w || this.option.h)
 			img = img.resize(this.option.w, this.option.h);
 		return img.toBuffer();
