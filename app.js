@@ -28,8 +28,6 @@ if(process.env.NODE_ENV === 'local') {
  @format http://192.168.1.105:3015/<app-name>/<file-type>/<directory-path>/<options>/<file-name>
  @example http://192.168.1.105:3015/demo/image/upload/Desert.jpg
  */
-/*if(agent.chrome || agent.opera || agent.android)
- buf = sharp(buf).toFormat(sharp.format.webp).toBuffer();*/
 
 //send response
 function sendResponse(req, res, next, buffer, crop) {
@@ -84,7 +82,7 @@ function routes() {
 			if(link.hostname) {
 				async.parallel([
 					function(cbk) {
-						http.request({method: 'HEAD', hostname: link.hostname, port: link.port, path: link.path},
+						http.request({protocol: link.protocol || 'http:', method: 'HEAD', hostname: link.hostname, port: link.port, path: link.path},
 							(resp) => {
 								cbk(null, resp.headers);
 							}).on('error', (e) => {
