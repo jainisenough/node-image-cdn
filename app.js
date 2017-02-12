@@ -1,6 +1,6 @@
 const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
-const sharp = require('sharp');
+//const sharp = require('sharp');
 const fileType = require('file-type');
 const useragent = require('useragent');
 const fs = require('fs');
@@ -8,7 +8,7 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const config = require('./config');
-const Image = require('./class/image');
+//const Image = require('./class/image');
 
 /************ Configuration ******************/
 //mongo connection
@@ -16,7 +16,7 @@ let log;
 if(config.log.enable) {
 	let connectionString = `${config.db.type}db://`;
 	if(config.db.username || config.db.password)
-		connectionString += `${config.db.username}${config.db.password}@`;
+		connectionString += `${config.db.username}:${config.db.password}@`;
 	connectionString += `${config.db.server}:${config.db.port}/${config.db.name}`;
 	mongoClient.connect(connectionString, (err, db) => {
 		if(err) throw err;
@@ -152,10 +152,9 @@ function routes() {
 						created: new Date()
 					};
 
-					if(config.log.ttl) {
-						saveObj.ttl = config.log.ttl;
-					}
-					log.insertOne(saveObj, {w: config.db.writeConcern}, () => {});
+					if(config.log.ttl)
+						saveObj.ttl = new Date(new Date().getTime() + config.log.ttl);
+					log.insertOne(saveObj, {w: config.db.writeConcern});
 				});
 			}
 		} else

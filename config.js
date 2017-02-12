@@ -1,7 +1,7 @@
 //configuration file
 module.exports = {
-	host: '0.0.0.0',
-	port: 3000,
+	host: '192.168.1.104',
+	port: 3015,
 	postMaxSize: 10 * 1024,
 	server: {
 		ssl: {
@@ -18,11 +18,11 @@ module.exports = {
 		name: 'imagecdn',
 		username: 'root',
 		password: 'toor',
-		writeConcern: 1
+		writeConcern: 0
 	},
 	log: {
 		enable: true,
-		ttl: 30 * 24 * 60 * 60
+		ttl: 30 * 24 * 60 * 60 * 1000
 	},
 	base: 'files/',
 	cache: {
