@@ -1,4 +1,4 @@
-// configuration file
+//configuration file
 module.exports = {
 	host: '0.0.0.0',
 	port: 3000,
@@ -21,7 +21,7 @@ module.exports = {
 		writeConcern: 1
 	},
 	log: {
-		enable: true,
+		enable: false,
 		ttl: 30 * 24 * 60 * 60
 	},
 	base: 'files/',
