@@ -1,4 +1,3 @@
-'use strict';
 const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
 const sharp = require('sharp');
@@ -6,88 +5,95 @@ const fileType = require('file-type');
 const useragent = require('useragent');
 const fs = require('fs');
 const http = require('http');
+const https = require('https');
 const url = require('url');
 const config = require('./config');
 const Image = require('./class/image');
-const server = require((typeof process.env.HTTP === 'undefined' || process.env.HTTP === 'true') ?
-	'http' : 'spdy');
 
-/************Configuration******************/
-// mongo connection
+/************ Configuration ******************/
+//mongo connection
 let log;
-if(process.env.NODE_ENV === 'local') {
+if(config.log.enable) {
 	mongoClient.connect(`${config.db.type}db://${config.db.server}:${config.db.port}/${config.db.name}`,
 		(err, db) => {
-			if (err) throw err;
+			if(err) throw err;
 			log = db.collection('log');
 		});
 }
 
-/************Private function******************/
+/************ Private function ******************/
 /*
  @format http://192.168.1.105:3015/<app-name>/<file-type>/<directory-path>/<options>/<file-name>
  @example http://192.168.1.105:3015/demo/image/upload/Desert.jpg
  */
 
 //send response
-function sendResponse(req, res, next, buffer, crop) {
-	crop = crop || false;
-
+function sendResponse(req, res, next, buffer, crop = false) {
 	//create image manipulation object
 	new Promise((resolve, reject) => {
 		if(crop) {
-			let obj = new Image(crop);
-			obj.manipulateImage(buffer).then(resolve).catch(reject);
-		} else
-				resolve(buffer);
+			new Image(crop)
+				.manipulateImage(buffer)
+				.then(resolve)
+				.catch(reject);
+		} else {
+			resolve(buffer);
+		}
 	}).then((buf) => {
-		let agent = useragent.is(req.headers['user-agent']);
+		const agent = useragent.is(req.headers['user-agent']);
 		new Promise((resolve, reject) => {
-			if(agent.chrome || agent.opera || agent.android)
-				buf = sharp(buf).toFormat(sharp.format.webp).toBuffer().then(resolve).catch(reject);
-			else
-				resolve(buf)
+			if(agent.chrome || agent.opera || agent.android) {
+				sharp(buf)
+					.toFormat(sharp.format.webp)
+					.toBuffer()
+					.then(resolve)
+					.catch(reject);
+			} else {
+				resolve(buf);
+			}
 		}).then((b) => {
-			let fType = fileType(b);
-			let contentType = fType ? fType.mime : 'text/plain';
+			const fType = fileType(b);
+			const contentType = fType ? fType.mime : 'text/plain';
 			res.writeHead(200, {'Content-Type': contentType});
 			res.end(b, 'binary');
-		}).catch((err) => console.log(err));
-	}).catch((err) => console.log(err));
+		}).catch(err => console.log(err));
+	}).catch(err => console.log(err));
 }
 
 //routing method
 function routes() {
-	return function (req, res, next) {
-		if (req.method === 'GET') {
-			let requestUrl = url.parse(req.url);
+	return function(req, res, next) {
+		if(req.method === 'GET') {
+			const requestUrl = url.parse(req.url);
 			let parseUrl = requestUrl.pathname.replace(/^\/|\/$/g, '');
 			parseUrl = parseUrl.split('/');
 			let f = parseUrl[parseUrl.length - 1];
 
 			//add protocol, if not
-			if(f.indexOf('http') === -1)
-				f = 'http%3A' + f;
+			if(f.indexOf('http')) {
+				f = `http%3A${f}`;
+			}
 
 			try {
 				f = decodeURIComponent(f);
 			} catch (e) {}
 
 			//validate either link or name
-			let link = url.parse(f);
-			let fName = f.substring(f.lastIndexOf('/'));
-			let fPath = `${config.base}${parseUrl[2]}/${fName}`;
+			const link = url.parse(f);
+			const fName = f.substring(f.lastIndexOf('/'));
+			const fPath = `${config.base}${parseUrl[2]}/${fName}`;
+			const adapter = link.protocol.toLowerCase().slice(0, -1) === 'https' ? https : http;
 
 			//download image
 			if(link.hostname) {
 				async.parallel([
 					function(cbk) {
-						http.request({protocol: link.protocol || 'http:', method: 'HEAD', hostname: link.hostname, port: link.port, path: link.path},
+						adapter.request({method: 'HEAD', hostname: link.hostname, port: link.port, path: link.path},
 							(resp) => {
 								cbk(null, resp.headers);
 							}).on('error', (e) => {
-							cbk(e, null);
-						}).end();
+								cbk(e, null);
+							}).end();
 					},
 					function(cbk) {
 						fs.stat(fPath, (err, resp) => {
@@ -95,20 +101,20 @@ function routes() {
 							else cbk(null, resp);
 						});
 					}
-				], function(err, resp) {
+				], (err, resp) => {
 					if(resp && resp[0]) {
 						if(resp[1] && Number(resp[0]['content-length']) === resp[1].size) {
 							//deliver remote file local copy
-							fs.readFile(fPath, (err, data) => {
+							fs.readFile(fPath, (err2, data) => {
 								sendResponse(req, res, next, data, parseUrl.length > 4 ? {
 									option: parseUrl[parseUrl.length - 2]
 								} : false);
 							});
 						} else {
-							let file = fs.createWriteStream(fPath);
-							http.get(f, (response) => {
-								if (response.statusCode === 200) {
-									let data = [];
+							const file = fs.createWriteStream(fPath);
+							adapter.get(f, (response) => {
+								if(response.statusCode === 200) {
+									const data = [];
 									response.pipe(file);
 									response.on('data', (chunk) => {
 										data.push(chunk);
@@ -123,42 +129,49 @@ function routes() {
 											option: parseUrl[parseUrl.length - 2]
 										} : false);
 									});
-								} else
+								} else {
 									sendResponse(req, res, next, 'Remote file missing.');
+								}
 							});
 						}
-					} else
+					} else {
 						sendResponse(req, res, next, 'Remote file missing.');
+					}
 				});
 			} else {
 				//deliver local file
 			}
 
 			//log hook
-			if(process.env.NODE_ENV === 'local') {
+			if(config.log.enable) {
 				res.once('finish', () => {
-					log.insertOne({
+					const saveObj = {
 						url: `${req.headers.host}${req.url}`,
 						ip: req.connection.remoteAddress || req.socket.remoteAddress
 						|| (req.connection.socket && req.connection.socket.remoteAddress),
 						token: req.headers.token,
 						agent: req.headers['user-agent'],
 						created: new Date()
-					}, {w: config.db.writeConcern}, () => {});
+					};
+
+					if(config.log.ttl) {
+						saveObj.ttl = config.log.ttl;
+					}
+					log.insertOne(saveObj, {w: config.db.writeConcern}, () => {});
 				});
 			}
 		} else {
 			sendResponse(req, res, next, 'What you are looking for?');
 		}
-	}
+	};
 }
 
 /*********Initialize Server**********************/
 let serv;
-if (typeof process.env.HTTP === 'undefined' || process.env.HTTP) {
-	serv = server.createServer(routes());
+if(typeof process.env.HTTP === 'undefined' || process.env.HTTP) {
+	serv = http.createServer(routes());
 } else {
-	serv = server.createServer({
+	serv = https.createServer({
 		key: fs.readFileSync(config.server.ssl.key),
 		cert: fs.readFileSync(config.server.ssl.cert),
 		ca: fs.readFileSync(config.server.ssl.ca)

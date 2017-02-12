@@ -1,4 +1,3 @@
-'use strict';
 const sharp = require('sharp');
 const fileType = require('file-type');
 const _ = require('lodash');
@@ -26,30 +25,34 @@ module.exports = class ImageManipulation {
 
 		//merge option
 		if(crop.option) {
-			crop.option.split(',').forEach(v => {
-				let temp = v.split('_');
-				if(temp.length === 2)
+			crop.option.split(',').forEach((v) => {
+				const temp = v.split('_');
+				if(temp.length === 2) {
 					this.option[temp[0]] = isNaN(temp[1]) ? temp[1] : Number(temp[1]);
+				}
 			});
 		}
 	}
 
 	manipulateImage(buffer) {
-		let fType = fileType(buffer);
-		if(fType)
+		const fType = fileType(buffer);
+		if(fType) {
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
+		}
 
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
-			compressionLevel: Math.round((this.option.q || configuration.image.quality)/11.11)
-		}:{
+			compressionLevel: Math.round((this.option.q || configuration.image.quality) / 11.11)
+		} : {
 			quality: this.option.q || configuration.image.quality
 		});
 
 		let img = sharp(buffer)[this.ext](this.imageOption)
 			.blur(this.option.b ||
-			(this.option.w && this.option.w > 500) ? configuration.image.blur.max : configuration.image.blur.min);
-		if(this.option.w || this.option.h)
+						(this.option.w && this.option.w > 500) ?
+						configuration.image.blur.max : configuration.image.blur.min);
+		if(this.option.w || this.option.h) {
 			img = img.resize(this.option.w, this.option.h);
+		}
 		return img.toBuffer();
 	}
 };

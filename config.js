@@ -13,12 +13,16 @@ module.exports = {
 	},
 	db: {
 		type: 'mongo',
-		server: '192.168.1.105',
+		server: '192.168.1.104',
 		port: '27017',
 		name: 'imagecdn',
 		username: '',
 		password: '',
 		writeConcern: 1
+	},
+	log: {
+		enable: true,
+		ttl: 30 * 24 * 60 * 60
 	},
 	base: 'files/',
 	cache: {
