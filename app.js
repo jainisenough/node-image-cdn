@@ -14,11 +14,14 @@ const Image = require('./class/image');
 //mongo connection
 let log;
 if(config.log.enable) {
-	mongoClient.connect(`${config.db.type}db://${config.db.server}:${config.db.port}/${config.db.name}`,
-		(err, db) => {
-			if(err) throw err;
-			log = db.collection('log');
-		});
+	let connectionString = `${config.db.type}db://`;
+	if(config.db.username || config.db.password)
+		connectionString += `${config.db.username}${config.db.password}@`;
+	connectionString += `${config.db.server}:${config.db.port}/${config.db.name}`;
+	mongoClient.connect(connectionString, (err, db) => {
+		if(err) throw err;
+		log = db.collection('log');
+	});
 }
 
 /************ Private function ******************/
@@ -48,9 +51,7 @@ function sendResponse(req, res, next, buffer, crop = false) {
 					.toBuffer()
 					.then(resolve)
 					.catch(reject);
-			} else {
-				resolve(buf);
-			}
+			} else resolve(buf);
 		}).then((b) => {
 			const fType = fileType(b);
 			const contentType = fType ? fType.mime : 'text/plain';
@@ -70,9 +71,8 @@ function routes() {
 			let f = parseUrl[parseUrl.length - 1];
 
 			//add protocol, if not
-			if(f.indexOf('http')) {
+			if(f.indexOf('http'))
 				f = `http%3A${f}`;
-			}
 
 			try {
 				f = decodeURIComponent(f);
@@ -129,14 +129,12 @@ function routes() {
 											option: parseUrl[parseUrl.length - 2]
 										} : false);
 									});
-								} else {
+								} else
 									sendResponse(req, res, next, 'Remote file missing.');
-								}
 							});
 						}
-					} else {
+					} else
 						sendResponse(req, res, next, 'Remote file missing.');
-					}
 				});
 			} else {
 				//deliver local file
@@ -160,9 +158,8 @@ function routes() {
 					log.insertOne(saveObj, {w: config.db.writeConcern}, () => {});
 				});
 			}
-		} else {
+		} else
 			sendResponse(req, res, next, 'What you are looking for?');
-		}
 	};
 }
 
