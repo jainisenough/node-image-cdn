@@ -1,7 +1,7 @@
 //configuration file
 module.exports = {
-	host: '192.168.1.104',
-	port: 3015,
+	host: '0.0.0.0',
+	port: 3000,
 	postMaxSize: 10 * 1024,
 	server: {
 		ssl: {
