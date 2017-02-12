@@ -21,7 +21,7 @@ module.exports = {
 		writeConcern: 1
 	},
 	log: {
-		enable: false,
+		enable: true,
 		ttl: 30 * 24 * 60 * 60
 	},
 	base: 'files/',
