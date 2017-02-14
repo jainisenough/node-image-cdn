@@ -5,7 +5,7 @@ const configuration = {
 	image: {
 		quality: 60,
 		blur: {
-			min: 0.05,
+			min: 0.3,
 			max: 0.5
 		}
 	}
