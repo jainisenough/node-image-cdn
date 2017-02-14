@@ -27,18 +27,16 @@ module.exports = class ImageManipulation {
 		if(crop.option) {
 			crop.option.split(',').forEach((v) => {
 				const temp = v.split('_');
-				if(temp.length === 2) {
+				if(temp.length === 2)
 					this.option[temp[0]] = isNaN(temp[1]) ? temp[1] : Number(temp[1]);
-				}
 			});
 		}
 	}
 
 	manipulateImage(buffer) {
 		const fType = fileType(buffer);
-		if(fType) {
+		if(fType)
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
-		}
 
 		_.assignIn(this.imageOption, this.ext === 'png' ? {
 			compressionLevel: Math.round((this.option.q || configuration.image.quality) / 11.11)
@@ -50,9 +48,8 @@ module.exports = class ImageManipulation {
 			.blur(this.option.b ||
 						(this.option.w && this.option.w > 500) ?
 						configuration.image.blur.max : configuration.image.blur.min);
-		if(this.option.w || this.option.h) {
+		if(this.option.w || this.option.h)
 			img = img.resize(this.option.w, this.option.h);
-		}
 		return img.toBuffer();
 	}
 };
