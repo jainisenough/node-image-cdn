@@ -13,11 +13,11 @@ module.exports = {
 	},
 	db: {
 		type: 'mongo',
-		server: 'ds149049.mlab.com',
-		port: '49049',
+		server: '192.168.1.105',
+		port: '27017',
 		name: 'imagecdn',
-		username: 'root',
-		password: 'toor',
+		username: '',
+		password: '',
 		writeConcern: 0
 	},
 	log: {
@@ -26,7 +26,7 @@ module.exports = {
 	},
 	base: 'files/',
 	cache: {
-		enable: false,
-		maxAge: 24 * 60 * 60
+		enable: true,
+		maxAge: 1 * 60 * 60
 	}
 };
