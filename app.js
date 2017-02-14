@@ -1,6 +1,6 @@
 const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
-const sharp = require('sharp');
+//const sharp = require('sharp');
 const fileType = require('file-type');
 const useragent = require('useragent');
 const fs = require('fs');
@@ -8,7 +8,7 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const config = require('./config');
-const Image = require('./class/image');
+//const Image = require('./class/image');
 
 /************ Configuration ******************/
 //mongo connection
@@ -52,8 +52,15 @@ function sendResponse(req, res, next, buffer, crop = false) {
 			} else resolve(buf);
 		}).then((b) => {
 			const fType = fileType(b);
-			const contentType = fType ? fType.mime : 'text/plain';
-			res.writeHead(200, {'Content-Type': contentType});
+			const headers = {
+				'Content-Type': fType ? fType.mime : 'text/plain',
+				'Content-Length': b.length
+			};
+			if(config.cache.enable) {
+				headers['Cache-Control'] = `public, max-age=${config.cache.maxAge}`;
+				headers.Expires = new Date(Date.now() + (config.cache.maxAge * 1000)).toUTCString();
+			}
+			res.writeHead(200, headers);
 			res.end(b, 'binary');
 		}).catch(err => console.log(err));
 	}).catch(err => console.log(err));
@@ -155,8 +162,13 @@ function routes() {
 					log.insertOne(saveObj, {w: config.db.writeConcern});
 				});
 			}
-		} else
-			sendResponse(req, res, next, 'What you are looking for?');
+		} else {
+			//method not allowed
+			res.statusCode = 405;
+			res.setHeader('Allow', 'GET');
+			res.setHeader('Content-Length', '0');
+			res.end();
+		}
 	};
 }
 
