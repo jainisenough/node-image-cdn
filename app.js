@@ -162,9 +162,9 @@ function routes() {
 
 /*********Initialize Server**********************/
 let serv;
-if(typeof process.env.HTTP === 'undefined' || process.env.HTTP) {
+if(typeof process.env.HTTP === 'undefined' || process.env.HTTP)
 	serv = http.createServer(routes());
-} else {
+else {
 	serv = https.createServer({
 		key: fs.readFileSync(config.server.ssl.key),
 		cert: fs.readFileSync(config.server.ssl.cert),
