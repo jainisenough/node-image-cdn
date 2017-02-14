@@ -39,9 +39,7 @@ function sendResponse(req, res, next, buffer, crop = false) {
 				.manipulateImage(buffer)
 				.then(resolve)
 				.catch(reject);
-		} else {
-			resolve(buffer);
-		}
+		} else resolve(buffer);
 	}).then((buf) => {
 		const agent = useragent.is(req.headers['user-agent']);
 		new Promise((resolve, reject) => {
