@@ -1,6 +1,6 @@
 const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
-//const sharp = require('sharp');
+const sharp = require('sharp');
 const fileType = require('file-type');
 const useragent = require('useragent');
 const fs = require('fs');
@@ -8,7 +8,7 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const config = require('./config');
-//const Image = require('./class/image');
+const Image = require('./class/image');
 
 /************ Configuration ******************/
 //mongo connection
@@ -39,9 +39,7 @@ function sendResponse(req, res, next, buffer, crop = false) {
 				.manipulateImage(buffer)
 				.then(resolve)
 				.catch(reject);
-		} else {
-			resolve(buffer);
-		}
+		} else resolve(buffer);
 	}).then((buf) => {
 		const agent = useragent.is(req.headers['user-agent']);
 		new Promise((resolve, reject) => {
@@ -164,9 +162,9 @@ function routes() {
 
 /*********Initialize Server**********************/
 let serv;
-if(typeof process.env.HTTP === 'undefined' || process.env.HTTP) {
+if(typeof process.env.HTTP === 'undefined' || process.env.HTTP)
 	serv = http.createServer(routes());
-} else {
+else {
 	serv = https.createServer({
 		key: fs.readFileSync(config.server.ssl.key),
 		cert: fs.readFileSync(config.server.ssl.cert),
