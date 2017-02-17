@@ -2,7 +2,7 @@ const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
 const sharp = require('sharp');
 const fileType = require('file-type');
-const useragent = require('useragent');
+const uaParserJs = require('ua-parser-js');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
@@ -41,9 +41,12 @@ function sendResponse(req, res, next, buffer, crop = false) {
 				.catch(reject);
 		} else resolve(buffer);
 	}).then((buf) => {
-		const agent = useragent.is(req.headers['user-agent']);
+		const agent = uaParserJs(req.headers['user-agent']);
+		agent.browser.name = agent.browser.name ? agent.browser.name.toLowerCase() : null;
 		new Promise((resolve, reject) => {
-			if(agent.chrome || agent.opera || agent.android) {
+			if(agent.browser.name === 'chrome' ||
+					agent.browser.name === 'opera' ||
+					agent.browser.name === 'android') {
 				sharp(buf)
 					.toFormat(sharp.format.webp)
 					.toBuffer()
