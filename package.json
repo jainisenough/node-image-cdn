@@ -15,7 +15,7 @@
     "lodash": "^4.17.4",
     "mongodb": "^2.2.22",
     "sharp": "^0.17.2",
-    "useragent": "^2.1.12"
+    "ua-parser-js": "^0.7.12"
   },
   "description": "Image cdn server",
   "author": "Akhilesh Jain",
