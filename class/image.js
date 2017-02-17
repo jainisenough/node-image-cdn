@@ -25,7 +25,8 @@ module.exports = class ImageManipulation {
 
 		//merge option
 		if(crop.option) {
-			crop.option.split(',').forEach((v) => {
+			const option = crop.option.replace(/^,|,$|\s+/g, '');
+			option.split(',').forEach((v) => {
 				const temp = v.split('_');
 				if(temp.length === 2)
 					this.option[temp[0]] = isNaN(temp[1]) ? temp[1] : Number(temp[1]);
