@@ -1,12 +1,14 @@
 const mongoClient = require('mongodb').MongoClient;
 const async = require('async');
 const sharp = require('sharp');
+const {CronJob} = require('cron');
 const fileType = require('file-type');
 const uaParserJs = require('ua-parser-js');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const crypto = require('crypto');
 const config = require('./config');
 const Image = require('./class/image');
 
@@ -60,13 +62,14 @@ function sendResponse(req, res, next, buffer, crop = false) {
 				'Content-Length': b.length
 			};
 			if(config.cache.enable) {
-				headers['Cache-Control'] = `public, max-age=${config.cache.maxAge}`;
-				headers.Expires = new Date(Date.now() + (config.cache.maxAge * 1000)).toUTCString();
+				headers['Cache-Control'] = `public, max-age=${config.cache.maxAge / 1000}`;
+				headers.Expires = new Date(Date.now() + config.cache.maxAge).toUTCString();
+				headers.ETag = `W/${crypto.createHash('md4').update(req.url).digest('hex')}`;
 			}
 			res.writeHead(200, headers);
 			res.end(b, 'binary');
-		}).catch(err => console.log(err));
-	}).catch(err => console.log(err));
+		}).catch(console.log);
+	}).catch(console.log);
 }
 
 //routing method
@@ -191,4 +194,27 @@ serv.timeout = config.server.timeout;
 serv.listen(process.env.PORT || config.port, config.host, () => {
 	console.log(`Server initialize http${(process.env.HTTP === 'false' ? 's' : '')}://${config.host}:\
 ${process.env.PORT || config.port}`);
+
+	//setup cron job
+	new CronJob('00 00 * * * *', () => {
+		fs.readdir(config.base, (err, list) => {
+			if(list && list.length) {
+				async.concatSeries(list, (dir, cbk) => {
+					fs.readdir(`${config.base}${dir}`, (err2, f) => {
+						if(f && f.length) {
+							async.mapLimit(f, 5, (file, cbk2) => {
+								fs.stat(`${config.base}${dir}/${file}`, (err3, stats) => {
+									if(stats && stats.mtime &&
+										(new Date(stats.mtime).getTime() + config.cache.maxAge) <
+										new Date().getTime())
+										fs.unlink(`${config.base}${dir}/${file}`, cbk2);
+									else cbk2(null);
+								});
+							}, cbk);
+						} else cbk(null);
+					});
+				}, () => {});
+			}
+		});
+	}, null, true);
 });
