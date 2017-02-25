@@ -7,10 +7,11 @@
   },
   "main": "app.js",
   "env": {
-    "NODE_ENV": "development"
+    "NODE_ENV": "production"
   },
   "dependencies": {
     "async": "^2.1.4",
+    "cron": "^1.2.1",
     "file-type": "^4.1.0",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.22",
