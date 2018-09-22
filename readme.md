@@ -32,7 +32,7 @@ No need to worry, just manage configuration after deployment thru config.js file
 
 ## Contributing
 
-This is the private project of LMD India Pvt. Ltd. You cannot any modification & distribution without permission of LMD India Pvt. Ltd.
+This is the private project of Author. You cannot any modification & distribution without permission of Author.
 
 ## Versioning
 
