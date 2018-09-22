@@ -41,7 +41,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## Authors
 
 * **Akhilesh Jain** - [Know More](https://github.com/jainisenough)
-* **Binod Taterway**
+
 
 ## License
 
