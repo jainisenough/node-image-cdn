@@ -1,6 +1,6 @@
 # Image CDN
 
-Image CDN is an server who provides the media file with great speed & caches. You can also crop, trim & blur like things with the help of that. It also delivers Image according to browser.
+Image CDN is an server who delivers the media file with great speed & caches. You can also crop, trim & blur like functionality with the help of it. It can  also delivers image in different format & supported by browser (eg: webp for webkit broswers).
 
 ## Getting Started
 
