@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node .",
+    "start": "export NODE_OPTIONS=--openssl-legacy-provider && node .",
     "lint": "eslint ."
   },
   "main": "app.js",

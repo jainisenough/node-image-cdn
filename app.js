@@ -60,6 +60,7 @@ const sendResponse = async(req, res, next, buffer, crop = false) => {
 			headers.Expires = new Date(Date.now() + config.cache.maxAge).toUTCString();
 			headers.ETag = `W/${crypto.createHash('md4').update(req.url).digest('hex')}`;
 		}
+
 		res.writeHead(200, headers);
 		res.end(buf, 'binary');
 	} catch(err) {
@@ -175,7 +176,7 @@ const routes = (req, res, next) => {
 					});
 				}
 			} else {
-				console.log('Invalid request url format');
+				console.log(`Invalid request url format: ${req.url}`);
 			}
 		} else {
 			//method not allowed
