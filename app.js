@@ -108,7 +108,7 @@ const routes = (req, res, next) => {
 								const file = createWriteStream(fPath);
 								try {
 									const response = await promisify(adapter.get)(f);
-		console.log('===============',response.statusCode)
+
 									if(response.statusCode === 200) {
 										const data = [];
 										response.pipe(file);
