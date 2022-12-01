@@ -99,7 +99,7 @@ const routes = (req, res, next) => {
 								stat(fPath).catch(Promise.resolve.bind(Promise, null))
 							]);
 							
-							if(localData && localData.size === Number(remoteData.headers['content-length']) && 0) {
+							if(localData && localData.size === Number(remoteData.headers['content-length'])) {
 								const data = await readFile(fPath);
 								await sendResponse(req, res, next, data, parseUrl.length > 4 ? {
 									option: parseUrl[parseUrl.length - 2]
