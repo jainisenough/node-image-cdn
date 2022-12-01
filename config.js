@@ -1,7 +1,7 @@
 //configuration file
-module.exports = {
+export default {
 	host: '0.0.0.0',
-	port: 3000,
+	port: 3010,
 	postMaxSize: 10 * 1024,
 	server: {
 		ssl: {
@@ -13,7 +13,7 @@ module.exports = {
 	},
 	db: {
 		type: 'mongo',
-		server: '<sccount_id>.mlab.com',
+		server: '<account_id>.mlab.com',
 		port: '<port>',
 		name: 'imagecdn',
 		username: '',
@@ -21,12 +21,12 @@ module.exports = {
 		writeConcern: 0
 	},
 	log: {
-		enable: true,
+		enable: false,
 		ttl: 30 * 24 * 60 * 60 * 1000
 	},
-	base: 'files/',
+	base: 'files',
 	cache: {
 		enable: true,
-		maxAge: 1 * 60 * 60
+		maxAge: 1 * 60 * 60 * 1000
 	}
 };

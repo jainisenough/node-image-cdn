@@ -1,6 +1,7 @@
-const sharp = require('sharp');
-const fileType = require('file-type');
-const _ = require('lodash');
+'use strict';
+import sharp from 'sharp';
+import { fileTypeFromBuffer } from 'file-type';
+
 const configuration = {
 	image: {
 		quality: 60,
@@ -11,17 +12,15 @@ const configuration = {
 	}
 };
 
-module.exports = class ImageManipulation {
+export default class ImageManipulation {
 	constructor(crop) {
 		this.imageOption = {
-			progressive: true
+			progressive: true,
+			...crop.imageOption
 		};
 		this.ext = 'jpeg';
 		this.option = {};
 		this.webp = crop.webp || true;
-
-		//merge image options
-		_.assignIn(this.imageOption, crop.imageOption);
 
 		//merge option
 		if(crop.option) {
@@ -34,21 +33,18 @@ module.exports = class ImageManipulation {
 		}
 	}
 
-	manipulateImage(buffer) {
-		const fType = fileType(buffer);
+	async manipulateImage(buffer) {
+		const fType = await fileTypeFromBuffer(buffer);
 		if(fType)
 			this.ext = fType.ext === 'jpg' ? 'jpeg' : fType.ext;
 
-		_.assignIn(this.imageOption, this.ext === 'png' ? {
-			compressionLevel: Math.round((this.option.q || configuration.image.quality) / 11.11)
-		} : {
-			quality: this.option.q || configuration.image.quality
-		});
+		if(this.ext === 'png') {
+			this.imageOption.compressionLevel = Math.round((this.option.q || configuration.image.quality) / 11.11);
+		} else {
+			this.imageOption.quality = this.option.q || configuration.image.quality;
+		}
 
-		let img = sharp(buffer)[this.ext](this.imageOption)
-			.blur(this.option.b ||
-						(this.option.w && this.option.w > 500) ?
-						configuration.image.blur.max : configuration.image.blur.min);
+		let img = sharp(buffer)[this.ext](this.imageOption).blur(this.option.b || configuration.image.blur[this.option.w && this.option.w > 500 ? 'max':'min'])
 		if(this.option.w || this.option.h)
 			img = img.resize(this.option.w, this.option.h);
 		return img.toBuffer();
