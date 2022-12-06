@@ -1,5 +1,6 @@
 'use strict';
-import { MongoClient } from 'mongodb';
+import PouchDB from 'pouchdb';
+import PouchDBFind from 'pouchdb-find';
 import sharp from 'sharp';
 import pLimit from 'p-limit';
 import { CronJob } from 'cron';
@@ -22,8 +23,13 @@ http.request[promisify.custom] = (options) => new Promise((resolve, reject) => h
 http.get[promisify.custom] = (filePath) => new Promise((resolve, reject) => http.get(filePath, resolve).on('error', reject));
 
 const limit = pLimit(5);
-let log;
 /************ Configuration ******************/
+let log = null;
+
+if(config.log.enable) {
+	PouchDB.plugin(PouchDBFind);
+	log = new PouchDB(config.db.name, {revs_limit: 0});
+}
 
 /************ Private function ******************/
 /*
@@ -159,22 +165,20 @@ const routes = (req, res, next) => {
 				})();
 
 				//log hook
-				if(config.log.enable) {
-					res.once('finish', () => {
+				res.once('finish', () => {
+					if(config.log.enable) {
 						const saveObj = {
 							url: `${req.headers.host}${req.url}`,
 							ip: req.connection.remoteAddress || req.socket.remoteAddress
 							|| (req.connection.socket && req.connection.socket.remoteAddress),
 							token: req.headers.token,
 							agent: req.headers['user-agent'],
-							created: new Date()
+							created: Date.now()
 						};
 
-						if(config.log.ttl)
-							saveObj.ttl = new Date(new Date().getTime() + config.log.ttl);
-						log.insertOne(saveObj, {w: config.db.writeConcern});
-					});
-				}
+						log.post(saveObj).catch(console.log.bind(console));
+					}
+				});
 			} else {
 				console.log(`Invalid request url format: ${req.url}`);
 			}
@@ -206,36 +210,41 @@ serv.listen(process.env.PORT || config.port, config.host, async () => {
 	console.log(`Server initialize http${(process.env.HTTP === 'false' ? 's' : '')}://${config.host}:\
 ${process.env.PORT || config.port}`);
 
-	//setup cron job
-	new CronJob('0 0 * * * *', async () => {
-		try {
-			const dirs = await readdir(config.base);
-			const filesSettled = await Promise.allSettled(dirs.map(dir => limit(() => readdir(join(config.base, dir)))));
-			const filePaths = filesSettled.reduce((ini, dirFiles, idx) => dirFiles.status === 'fulfilled' ? [...ini, ...dirFiles.value.map(f => join(config.base, dirs[idx], f))] : ini, []);
-			const fileStatsSettled = await Promise.allSettled(filePaths.map(file => limit(() => stat(file))));
-			const fileStats = fileStatsSettled.reduce((ini, fStats) => fStats.status === 'fulfilled' ? [...ini, fStats.value] : ini, []);
-			const filesToDelete = fileStats.reduce((ini, fStats, idx) => fStats && fStats.mtime && (new Date(fStats.mtime).getTime() + config.cache.maxAge) < Date.now() ? [...ini, filePaths[idx]] : ini, []);
-			Promise.allSettled(filesToDelete.map(file => limit(() => unlink(file))));
-		} catch(err) {
-			console.log(err);
-		}
-	}, null, true);
-
-	//mongo connection
+	// Create Db indexes
 	if(config.log.enable) {
-		let connectionString = `${config.db.type}db://`;
-		if(config.db.username || config.db.password)
-			connectionString += `${config.db.username}:${config.db.password}@`;
-		connectionString += `${config.db.server}:${config.db.port}`;
-		const mongoClient = new MongoClient(connectionString);
-		try {
-			await mongoClient.connect();
-			const db = mongoClient.db(config.db.name);
-			log = db.collection('log');
-		} catch(mongoErr) {
-			console.log(mongoErr);
-		} finally {
-			mongoClient.close();
-		}
+		await log.createIndex({
+			index: {
+				fields: ['created']
+			}
+		});
 	}
 });
+
+// remove old files silently
+const removeFiles = async() => {
+	const dirs = await readdir(config.base);
+	const filesSettled = await Promise.allSettled(dirs.map(dir => limit(() => readdir(join(config.base, dir)))));
+	const filePaths = filesSettled.reduce((ini, dirFiles, idx) => dirFiles.status === 'fulfilled' ? [...ini, ...dirFiles.value.map(f => join(config.base, dirs[idx], f))] : ini, []);
+	const fileStatsSettled = await Promise.allSettled(filePaths.map(file => limit(() => stat(file))));
+	const filesToDelete = fileStatsSettled.reduce((ini, fStats, idx) => fStats.status === 'fulfilled' && fStats.value.mtime && (new Date(fStats.value.mtime).getTime() + config.cache.maxAge) < Date.now() ? [...ini, filePaths[idx]] : ini, []);
+	return await Promise.allSettled(filesToDelete.map(file => limit(() => unlink(file))));
+}
+
+// remove old logs silently
+const removeLogs = async() => {
+	const oldLogs = await log.find({
+		selector: {
+			created: { $lt: Date.now() - config.db.log }
+		}
+	});
+	return await Promise.allSettled(oldLogs.docs.map(l => limit(() => log.remove(l._id, l._rev))));
+}
+
+
+//setup cron job
+new CronJob('0 0 * * * *', () => {
+	Promise.all([
+		removeFiles(),
+		removeLogs()
+	]).catch(console.log.bind(console));
+}, undefined, true, undefined, null, true);

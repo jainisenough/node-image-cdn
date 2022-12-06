@@ -12,16 +12,10 @@ export default {
 		timeout: 2 * 60 * 1000
 	},
 	db: {
-		type: 'mongo',
-		server: '<account_id>.mlab.com',
-		port: '<port>',
-		name: 'imagecdn',
-		username: '',
-		password: '',
-		writeConcern: 0
+		name: 'imagecdn'
 	},
 	log: {
-		enable: false,
+		enable: true,
 		ttl: 30 * 24 * 60 * 60 * 1000
 	},
 	base: 'files',

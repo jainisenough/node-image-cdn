@@ -1,3 +1,6 @@
 node_modules
+imagecdn
+imagecdn-mrview-*
+files/*
 .python-version
 package-lock.json
